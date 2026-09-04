@@ -1,2 +1,2 @@
-# AquaNUnet
-This is the repository for AquaNUnet Paper.
+# AquaNM-Net
+This is the repository for AquaNM-Net Paper.
