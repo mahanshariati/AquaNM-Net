@@ -4,7 +4,7 @@ numpy
 opencv-python
 Pillow
 einops
-mamba-ssm
-pytorch-msssim
 torchinfo
 scikit-image
+pytorch-msssim
+mamba-ssm
