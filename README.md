@@ -166,8 +166,24 @@ Some components may originate from or be adapted from external research implemen
 
 ## License
 
-License information will be added after confirming the licenses and attribution requirements of included third-party components.
+This project is released under the MIT License.
+See the [LICENSE](LICENSE) file for details.
 
 ## Citation
 
 Citation information will be added when the associated publication details are finalized.
+
+
+## Credits
+
+This project builds upon previous underwater image enhancement research.
+
+Some components and implementation ideas are adapted from:
+
+- AutoEnhancer:
+  https://github.com/piggy2009/autoEnhancer
+
+- UDnet:
+  https://github.com/alzayats/UDnet
+
+We thank the authors for publicly releasing their implementations.
