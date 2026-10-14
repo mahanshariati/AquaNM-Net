@@ -37,6 +37,8 @@ The implementation depends on PyTorch and related libraries including:
 - pytorch-msssim
 - torchinfo
 - scikit-image
+- lpips
+- scipy
 
 The installation requirements for `mamba-ssm` may depend on the local CUDA and PyTorch versions.
 
@@ -129,7 +131,7 @@ Example architecture format:
 
 ## Inference and Evaluation
 
-Inference is performed using:
+Run evaluation for a selected 13-gene architecture using a trained checkpoint:
 
 ```bash
 python scripts/infer.py \
@@ -137,22 +139,81 @@ python scripts/infer.py \
     --arch A0 A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11 A12
 ```
 
-The architecture argument must contain exactly 13 values, each between 0 and 8.
+The architecture argument must contain exactly 13 integers, each from 0 to 8.
+The checkpoint must match the model's `--base-channels` (default: 48).
+By default, paired images are loaded from `data/LSUI/input` and `data/LSUI/GT`,
+using filenames from `data/splits/lsui/test.txt`. Edit `aqua_nmnet/config.py`
+if your dataset is located elsewhere. Use `--all-images` to evaluate every
+paired filename in the input and target directories.
 
-The inference pipeline:
+### Extended evaluation example
 
-- loads the trained checkpoint
-- restores the selected architecture
-- evaluates enhanced images
-- computes image-quality metrics
-- saves enhanced outputs
+```bash
+python scripts/infer.py \
+    --checkpoint PATH_TO_CHECKPOINT \
+    --arch 7 4 8 3 1 8 2 3 5 2 2 8 1 \
+    --image-size 256 \
+    --benchmark-size 256 \
+    --benchmark-warmup 10 \
+    --benchmark-runs 50
+```
 
-## Metrics
+The architecture above is an example of a 13-choice configuration; use the
+architecture associated with your trained checkpoint or search experiment.
+Inference resizes both input and reference images to 256 × 256 by default.
 
-The repository includes utilities for:
+The pipeline loads the checkpoint, counts the supernet parameters,
+optionally materializes the selected subnet, measures forward-pass latency,
+computes image-quality metrics, and optionally saves enhanced PNG images.
 
-- PSNR
-- SSIM
+### Evaluation outputs
+
+Under `--output-dir` (or the default `outputs/checkpoints/LSUI_infer_<checkpoint>`):
+
+- `per_image_metrics.csv`: filename, resolution, PSNR, SSIM, LPIPS, UIQM, UCIQE.
+- `summary_metrics.json`: per-metric means and population standard deviations,
+  model parameter counts, device information, benchmark settings, latency, and FPS.
+- Enhanced `.png` images (unless `--no-save-outputs` is specified).
+
+Additional options:
+
+- `--all-images`: use all paired LSUI images instead of the test split.
+- `--image-size N`: resize input and ground-truth images to `N × N`.
+- `--base-channels N`: set model width (must match the checkpoint).
+- `--benchmark-size N`: benchmark model forward passes at `N × N`.
+- `--benchmark-warmup N`: run `N` unmeasured warmup iterations.
+- `--benchmark-runs N`: run `N` timed iterations.
+- `--no-materialize`: retain all supernet operations during evaluation.
+- `--no-save-outputs`: write metrics but skip enhanced PNG files.
+
+### Metrics
+
+Full-reference metrics (require aligned ground-truth images):
+
+- **PSNR (↑)**: peak signal-to-noise ratio, reported in dB.
+- **SSIM (↑)**: structural similarity index.
+- **LPIPS (↓)**: perceptual distance using pretrained AlexNet features.
+
+No-reference metrics (computed only on enhanced images):
+
+- **UIQM (↑)**: underwater image quality measure, combining colorfulness,
+  sharpness, and contrast.
+
+PSNR and SSIM are implemented in `aqua_nmnet/utils/image_metrics.py`.
+UIQM, parameter counting, and latency benchmarking are implemented in
+`aqua_nmnet/utils/eval_metrics.py`. Different published UIQM implementations
+may use different processing conventions; comparisons should use the same code.
+LPIPS may require downloading pretrained feature-network weights on first use.
+
+### Model efficiency reporting
+
+The summary records total parameters before and after optional subnet
+materialization. It also reports latency mean and population standard
+deviation in milliseconds, and batch-size-1 FPS, measured at the chosen
+benchmark input size. Timing excludes image loading, host-to-device transfer,
+metric calculation, and disk output. FPS is calculated as `1000 / mean_latency_ms`
+and is not end-to-end pipeline throughput. Benchmark values depend on hardware
+and the software environment. FLOPs/MACs are **not** computed.
 
 ## Checkpoint Compatibility
 

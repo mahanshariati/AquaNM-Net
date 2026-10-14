@@ -6,5 +6,7 @@ Pillow
 einops
 torchinfo
 scikit-image
+lpips
+scipy
 pytorch-msssim
 mamba-ssm
