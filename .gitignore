@@ -205,3 +205,24 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Deep learning data
+data/LSUI/
+data/search_subset/
+
+# Checkpoints
+*.pth
+*.pt
+checkpoints/
+outputs/
+
+# Experiment logs
+runs/
+logs/
+wandb/
+
+# Generated images
+results/
+enhanced/
+
+.python-version
