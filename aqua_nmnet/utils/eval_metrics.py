@@ -2,40 +2,9 @@ import math
 import time
 from typing import Sequence, Tuple, Union
 
-import cv2
 import numpy as np
 import torch
 from scipy import ndimage
-
-
-def calculate_uciqe(rgb_uint8: np.ndarray) -> float:
-    if rgb_uint8.ndim != 3 or rgb_uint8.shape[2] != 3:
-        raise ValueError("UCIQE expects an HxWx3 RGB image.")
-
-    lab = cv2.cvtColor(rgb_uint8, cv2.COLOR_RGB2LAB).astype(np.float64)
-    l = lab[..., 0] / 255.0
-    a = (lab[..., 1] - 128.0) / 255.0
-    b = (lab[..., 2] - 128.0) / 255.0
-
-    chroma = np.sqrt(a * a + b * b)
-    sigma_c = float(np.std(chroma))
-
-    l_sorted = np.sort(l.reshape(-1))
-    if l_sorted.size == 0:
-        return float("nan")
-    k = max(1, int(round(0.01 * l_sorted.size)))
-    contrast_l = float(np.mean(l_sorted[-k:]) - np.mean(l_sorted[:k]))
-
-    denom = np.sqrt(chroma * chroma + l * l)
-    saturation = np.divide(
-        chroma,
-        denom,
-        out=np.zeros_like(chroma, dtype=np.float64),
-        where=denom > 1e-12,
-    )
-    mean_s = float(np.mean(saturation))
-
-    return float(0.4680 * sigma_c + 0.2745 * contrast_l + 0.2576 * mean_s)
 
 
 def _alpha_trimmed_mean(x: np.ndarray, alpha_l: float = 0.1, alpha_r: float = 0.1) -> float:
