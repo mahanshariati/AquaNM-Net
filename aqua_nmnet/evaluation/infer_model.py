@@ -12,7 +12,6 @@ from torchvision import transforms
 
 from aqua_nmnet.utils.eval_metrics import (
     benchmark_forward,
-    calculate_uciqe,
     calculate_uiqm,
     count_parameters,
 )
@@ -342,6 +341,3 @@ def run_inference(
     print(f"Outputs      : {out_dir}")
 
     return summary
-
-
-run_inference = run_inference
