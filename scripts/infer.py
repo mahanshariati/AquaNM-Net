@@ -81,6 +81,27 @@ def build_parser():
         ),
     )
 
+    parser.add_argument(
+        "--benchmark-size", type=int, default=256,
+        help="Square input size for latency benchmarking. Default: 256.",
+    )
+    parser.add_argument(
+        "--benchmark-warmup", type=int, default=10,
+        help="Benchmark warmup iterations. Default: 10.",
+    )
+    parser.add_argument(
+        "--benchmark-runs", type=int, default=50,
+        help="Timed benchmark iterations. Default: 50.",
+    )
+    parser.add_argument(
+        "--no-materialize", action="store_true",
+        help="Benchmark the unpruned supernet with the selected architecture.",
+    )
+    parser.add_argument(
+        "--no-save-outputs", action="store_true",
+        help="Do not save enhanced PNG images (still save CSV and JSON metrics).",
+    )
+
     return parser
 
 
@@ -94,12 +115,24 @@ def main():
     if args.base_channels <= 0:
         parser.error("--base-channels must be greater than zero.")
 
+    if args.benchmark_size <= 0:
+        parser.error("--benchmark-size must be greater than zero.")
+    if args.benchmark_warmup < 0:
+        parser.error("--benchmark-warmup cannot be negative.")
+    if args.benchmark_runs <= 0:
+        parser.error("--benchmark-runs must be greater than zero.")
+
     run_inference(
         ckpt_path=args.checkpoint,
         best_arch=args.arch,
         out_dir=args.output_dir,
         use_test_list=not args.all_images,
-        image_size=args.image_size,
+        resize_to=args.image_size,
+        materialize=not args.no_materialize,
+        benchmark_size=args.benchmark_size,
+        benchmark_warmup=args.benchmark_warmup,
+        benchmark_runs=args.benchmark_runs,
+        save_outputs=not args.no_save_outputs,
         base_channels=args.base_channels,
     )
 
